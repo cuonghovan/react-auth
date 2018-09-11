@@ -1,7 +1,8 @@
-
 import React from 'react'
-import { Auth } from 'aws-amplify'
 import { css } from 'glamor'
+import { withRouter } from 'react-router-dom'
+
+import { Auth } from 'aws-amplify'
 
 class SignUp extends React.Component {
   state = {
@@ -9,15 +10,17 @@ class SignUp extends React.Component {
     password: '',
     email: '',
     phone_number: '',
-    authCode: ''
+    authCode: '',
+    showConfirmation: false
   }
-
   onChange = (key, value) => {
-    this.setState({ [key]: value })
+    this.setState({
+      [key]: value
+    })
   }
-
   signUp = () => {
     const { username, password, email, phone_number } = this.state
+    console.log('state', this.state)
     Auth.signUp({
       username,
       password,
@@ -26,74 +29,87 @@ class SignUp extends React.Component {
         phone_number
       }
     })
-    .then(() => console.log('successful sign up!'))
+    .then(() => this.setState({ showConfirmation: true }))
     .catch(err => console.log('error signing up: ', err))
   }
-
   confirmSignUp = () => {
     Auth.confirmSignUp(this.state.username, this.state.authCode)
-    .then(console.log('successful confirm sign up!'))
+    .then(() => this.props.history.push('/'))
     .catch(err => console.log('error confirming signing up: ', err))
   }
-
   render() {
+    const { showConfirmation } = this.state
     return (
       <div {...css(styles.container)}>
-        <h2>Sign Up</h2>
-        <input
-          {...css(styles.input)}
-          placeholder='Username'
-          onChange={evt => this.onChange('username', evt.target.value)}
-        />
-        <input
-          {...css(styles.input)}
-          placeholder='Password'
-          type='password'
-          onChange={evt => this.onChange('password', evt.target.value)}
-        />
-        <input
-          {...css(styles.input)}
-          placeholder='Email'
-          onChange={evt => this.onChange('email', evt.target.value)}
-        />
-        <input
-          {...css(styles.input)}
-          placeholder='Phone Number'
-          onChange={evt => this.onChange('phone_number', evt.target.value)}
-        />
-        <div {...css(styles.button)} onClick={this.signUp}>
-          <span>Sign Up</span>
-        </div>
-        
-        <input
-          {...css(styles.input)}
-          placeholder='Authentication Code'
-          onChange={evt => this.onChange('authCode', evt.target.value)}
-        />
-        <div {...css(styles.button)} onClick={this.confirmSignUp}>
-          <span>Confirm Sign Up</span>
-        </div>
-        
+        {
+          !showConfirmation && (
+            <div {...css(styles.container)}>
+              <input
+                {...css(styles.input)}
+                placeholder='Username'
+                onChange={evt => this.onChange('username', evt.target.value)}
+              />
+              <input
+                {...css(styles.input)}
+                placeholder='Password'
+                type='password'
+                onChange={evt => this.onChange('password', evt.target.value)}
+              />
+              <input
+                {...css(styles.input)}
+                placeholder='Email'
+                onChange={evt => this.onChange('email', evt.target.value)}
+              />
+              <input
+                {...css(styles.input)}
+                placeholder='Phone Number'
+                onChange={evt => this.onChange('phone_number', evt.target.value)}
+              />
+              <div {...css(styles.button)} onClick={this.signUp}>
+                <p {...css(styles.buttonText)}>Sign Up</p>
+              </div>
+            </div>
+          )
+        }
+        {
+          showConfirmation && (
+            <div>
+              <input
+                onChange={evt => this.onChange('authCode', evt.target.value)}
+                {...css(styles.input)}
+                placeholder='Confirmation Code'
+              />
+              <div {...css(styles.button)} onClick={this.confirmSignUp}>
+                <p {...css(styles.buttonText)}>Confirm Sign Up</p>
+              </div>
+            </div>
+          )
+        }
       </div>
     )
   }
 }
 
-let styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center'
-  },
+const styles = {
   button: {
-    width: '170px',
-    padding: '10px 0px',
+    padding: '10px 60px',
     backgroundColor: '#ddd',
     cursor: 'pointer',
     borderRadius: '3px',
     ':hover': {
       backgroundColor: '#ededed'
     }
+  },
+  buttonText: {
+    margin: 0
+  },
+  container: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    paddingTop: '15px'
   },
   input: {
     height: 40,
@@ -105,7 +121,7 @@ let styles = {
     '::placeholder': {
       color: 'rgba(0, 0, 0, .3)'
     }
-  }
+  },
 }
 
-export default SignUp
+export default withRouter(SignUp)
